@@ -470,8 +470,13 @@ class PhpDebugSession extends vscode.DebugSession {
                 await launchScript(port)
             }
         } catch (error) {
-            this.sendErrorResponse(response, error as Error)
-            return
+            if (error instanceof Error && error.message === this._proxyConnect.msgs.duplicateKey) {
+                await this._proxyConnect.sendProxyStopCommand()
+                this.launchRequest(response, args)
+            } else {
+                this.sendErrorResponse(response, error as Error)
+                return
+            }
         }
         this.sendResponse(response)
         // request breakpoints
